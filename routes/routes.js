@@ -68,4 +68,50 @@ router.post("/new", async (req, res) => {
   }
 });
 
+// get all blogs
+router.get("/getblogs", async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const blogsCollection = db.collection("blogs");
+
+    //create a query object
+    const query = {};
+
+    // populate the query
+    if (req.query.title) {
+      query.title = { $regex: new RegExp(req.query.title, "i") };
+    }
+
+    if (req.query.content) {
+      //global regex search
+      query.content = { $regex: new RegExp(req.query.content, "g") };
+    }
+
+    //options for sorting and limiting
+    const options = {};
+    if (req.query.sortBy) {
+      options.sort = {
+        [req.query.sortBy]: req.query.sortOrder == "desc" ? -1 : 1,
+      };
+    } else {
+      options.sort = { createdAt: -1 };
+    }
+
+    if (req.query.limit) {
+      options.limit = parseInt(req.query.limit);
+    }
+
+    //send a response
+    const blogs = await blogsCollection.find(query, options).toArray();
+    if (blogs.length === 0) {
+      return res.status(200).json({ message: "No Blogs Found" });
+    } else {
+      res.status(200).json(blogs);
+    }
+  } catch (err) {
+    console.error(`Error fetching blogs: ${err}`);
+    res.status(500).json({ message: "Failed to fetch blogs", error: err });
+  }
+});
+
 export default router;
