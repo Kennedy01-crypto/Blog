@@ -1,13 +1,12 @@
 import express from "express";
 const app = express();
-const PORT = process.env.PORT || 3000 ;
+const PORT = process.env.PORT || 3000;
 import DBconnect from "./config/db.js";
 import { MongoClient } from "mongodb";
 import blogsrouter from "./routes/routes.js";
 
 // middleware
 app.use(express.json());
-
 
 // Retruve all users
 app.get("/users", (req, res) => {
@@ -93,13 +92,18 @@ export let blogs = ${JSON.stringify(blogs, null, 2)};`;
 // Blogs API
 app.use("/api", blogsrouter);
 
-
 // connect to the DB and start the server
-DBconnect().then(()=>{
-  console.log(`✅ Connected to MongoDB`);
-  //app lisener
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-    console.log(`Access the Blog Application at http://localhost:${PORT}`);
+DBconnect()
+  .then((client) => {
+    console.log(`✅ Connected to MongoDB`);
+
+    //set the db object for the whole application
+    app.locals.db = client.db("blogs-db");
+
+    //app lisener
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+      console.log(`Access the Blog Application at http://localhost:${PORT}`);
+    });
   })
-}). catch((err) => console.error(`❌ MongoDB connection error: ${err}`));
+  .catch((err) => console.error(`❌ MongoDB connection error: ${err}`));
