@@ -18,6 +18,7 @@ async function DBconnect() {
     await client.connect();
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged Deployment Success!!");
+    return client;
   } catch (err) {
     console.error(`Error connecting to MongoDB: ${err}`);
     process.exit(1);
