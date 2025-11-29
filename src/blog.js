@@ -1,116 +1,79 @@
+// Import necessary modules
 import express from "express";
+import morgan from "morgan";
+import dotenv from "dotenv";
 import DBconnect from "./config/db.js";
 import blogsrouter from "./routes/routes.js";
+import globalErrorHandler from "./controllers/errorController.js";
+import AppError from "./config/appError.js";
 
+// Load environment variables from a .env file into process.env
+dotenv.config();
+
+// Initialize the Express application
 const app = express();
+
+// Define the port for the server, using an environment variable or a default value
 const PORT = process.env.PORT || 3000;
 
+// Use morgan for HTTP request logging in development mode
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+}
+
+// Middleware to parse incoming JSON requests
+app.use(express.json());
+
+// Establish a connection to the database
 DBconnect();
 
 
-// middleware
-app.use(express.json());
-
-// Retruve all users
-app.get("/users", (req, res) => {
-  if (users.length === 0) {
-    return res.status(404).send("No users found.");
-  } else {
-    res.json(users);
-  }
-});
-
-// Retrieve a user by ID
-app.get("/users/:id", (req, res) => {
-  const user = users.find((u) => u.userId === parseInt(req.params.id));
-  if (!user) {
-    return res.status(404).send("The user with the given ID was not found.");
-  } else {
-    res.json(user);
-  }
-});
-
-// Create a new user
-app.post("/users", (req, res) => {
-  const newUser = {
-    userId: users.length > 0 ? Math.max(...users.map((u) => u.userId)) + 1 : 1,
-    name: req.body.name,
-  };
-  users.push(newUser);
-  const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const dataFilePath = path.join(__dirname, "data.js");
-  const updatedData = `export let users = ${JSON.stringify(
-    users,
-    null,
-    2
-  )}; export let blogs = ${JSON.stringify(blogs, null, 2)};`;
-  //write the new data back to data.js
-  fs.writeFile(dataFilePath, updatedData, "utf8", (err) => {
-    if (err) {
-      console.error(err);
-      return res
-        .status(500)
-        .send("An error occurred while writing to the file.");
-    }
-    res.status(201).json(newUser);
-  });
-});
-
-// Update an existing user
-app.put("/users/:id", (req, res) => {
-  const user = users.find((u) => u.userId === parseInt(req.params.id));
-  if (!user)
-    return res.status(404).send("The user with the given ID was not found.");
-
-  user.name = req.body.name;
-  res.json(user);
-});
-
-// Delete a user
-app.delete("/users/:id", (req, res) => {
-  const userIndex = users.findIndex(
-    (u) => u.userId === parseInt(req.params.id)
-  );
-  if (userIndex === -1)
-    return res.status(404).send("The user with the given ID was not found.");
-
-  const deletedUSer = users.splice(userIndex, 1);
-  const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const dataFilePath = path.join(__dirname, "data.js");
-  const updatedData = `export let users = ${JSON.stringify(users, null, 2)};
-
-export let blogs = ${JSON.stringify(blogs, null, 2)};`;
-
-  fs.writeFile(dataFilePath, updatedData, "utf8", (err) => {
-    if (err) {
-      console.error(err);
-      return res
-        .status(500)
-        .send("An error occurred while writing to the file.");
-    }
-    res.json(deletedUSer);
-  });
-});
-
-// Blogs API
+// Mount the blogs router for all routes starting with /api
 app.use("/api", blogsrouter);
 
-// connect to the DB and start the server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`)
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "✅TaskFlow API is running!" });
 });
 
-// DBconnect()
-//   .then((client) => {
-//     console.log(`✅ Connected to MongoDB`);
+// Middleware to handle requests for routes that have not been defined
+app.all("/*path", (req, res, next) => {
+  // Pass a 404 error to the global error handler
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
 
-//     //set the db object for the whole application
-//     app.locals.db = client.db("blogs-db");
+// Global error handling middleware to catch and process all errors
+app.use(globalErrorHandler);
 
-//     //app lisener
-//     app.listen(PORT, () => {
-//       console.log(`Server is running on port ${PORT}`);
-//       console.log(`Access the Blog Application at http://localhost:${PORT}`);
-//     });
-//   })
-//   .catch((err) => console.error(`❌ MongoDB connection error: ${err}`));
+// Start the server and listen for incoming requests on the specified port
+const server = app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+
+// Graceful shutdown for uncaught exceptions
+
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT EXCEPTION! 💥 Shutting Down...");
+  console.error(err.name, err.message, err.stack);
+
+  // Close the server and exit the process
+  console.log("Closing server...");
+  server.close(() => {
+    console.log("Server closed. Exiting process.");
+
+    process.exit(1);
+  });
+});
+
+// Graceful shutdown for unhandled promise rejections
+
+process.on("unhandledRejection", (err) => {
+  console.error("UNHANDLED REJECTION! 💥 Shutting Down...");
+  console.error(err.name, err.message, err.stack);
+
+  // Close the server and exit the process
+  console.log("Closing server...");
+  server.close(() => {
+    console.log("Server closed. Exiting process.");
+    process.exit(1);
+  });
+});
