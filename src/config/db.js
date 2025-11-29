@@ -12,10 +12,10 @@ async function DBconnect() {
   try {
     await mongoose.connect(uri);
     console.log("✅ Connected to MongoDB via Mongoose!");
-  } catch (err) {
-    console.error(`Error connecting to MongoDB: ${err.message}`);
+  } catch (error) {
+    console.error(`Error connecting to MongoDB: ${error.message}`);
     // Exit the process with a failure code if the connection fails
-    process.exit(1);
+    throw error;
   }
 }
 

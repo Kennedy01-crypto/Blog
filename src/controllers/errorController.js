@@ -1,4 +1,4 @@
-import AppError from "../config/appError";
+import AppError from "../config/appError.js";
 
 /**
  * @description Handles database cast errors, which occur when a query expects a certain data type but receives another.
