@@ -3,7 +3,7 @@ import express from "express";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import DBconnect from "./config/db.js";
-import blogsrouter from "./routes/routes.js";
+import blogsrouter from "./routes/blogRoutes.js";
 import globalErrorHandler from "./controllers/errorController.js";
 import AppError from "./config/appError.js";
 
@@ -27,16 +27,15 @@ app.use(express.json());
 // Establish a connection to the database
 DBconnect();
 
-
-// Mount the blogs router for all routes starting with /api
-app.use("/api", blogsrouter);
-
 app.get("/", (req, res) => {
   res.status(200).json({ message: "✅TaskFlow API is running!" });
 });
 
+// Mount the blogs router for all routes starting with /api
+app.use("/api/blogs", blogsrouter);
+
 // Middleware to handle requests for routes that have not been defined
-app.all("/*path", (req, res, next) => {
+app.use("/*path", (req, res, next) => {
   // Pass a 404 error to the global error handler
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
