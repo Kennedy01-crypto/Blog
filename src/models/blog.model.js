@@ -3,6 +3,13 @@ import mongoose from "mongoose";
 // Define the schema for the Blog model
 const blogSchema = new mongoose.Schema(
   {
+    author: {
+      type: String,
+      required: [true, "Author is required"],
+      minlength: [5, "Author name must be at least 5 characters long"],
+      maxlength: [50, "Author name cannot exceed 50 characters"],
+      trim: true,
+    },
     // Title of the blog post
     title: {
       type: String,
