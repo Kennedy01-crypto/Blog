@@ -26,7 +26,13 @@ export const createBlog = async (req, res, next) => {
  */
 export const getBlog = async (req, res, next) => {
   try {
-    const blog = await Blog.findById(req.params.id);
+    let query = Blog.findById(req.params.id);
+    if (req.query.fields) {
+      const fields = req.query.fields.split(',').join(' ');
+      query = query.select(fields);
+    }
+
+    const blog = await query;
 
     if (!blog) {
       return next(new AppError(`No Blog found with that ID`, 404));
