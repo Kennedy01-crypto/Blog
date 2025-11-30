@@ -6,6 +6,8 @@ import DBconnect from "./config/db.js";
 import blogsrouter from "./routes/blogRoutes.js";
 import globalErrorHandler from "./controllers/errorController.js";
 import AppError from "./config/appError.js";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./swaggerConfig.js";
 
 // Load environment variables from a .env file into process.env
 dotenv.config();
@@ -26,6 +28,9 @@ app.use(express.json());
 
 // Establish a connection to the database
 DBconnect();
+
+//Swagger Documentaion Setip
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "✅TaskFlow API is running!" });
