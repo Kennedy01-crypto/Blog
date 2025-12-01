@@ -4,11 +4,9 @@ import mongoose from "mongoose";
 const blogSchema = new mongoose.Schema(
   {
     author: {
-      type: String,
-      required: [true, "Author is required"],
-      minlength: [5, "Author name must be at least 5 characters long"],
-      maxlength: [50, "Author name cannot exceed 50 characters"],
-      trim: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: [true, "A blog post must have an author."],
     },
     // Title of the blog post
     title: {
@@ -82,7 +80,11 @@ blogSchema.pre("save", function (next) {
 
 // Static method to increment view count
 blogSchema.statics.incrementViewCount = function (blogId) {
-  return this.findByIdAndUpdate(blogId, { $inc: { viewCount: 1 } }, { new: true });
+  return this.findByIdAndUpdate(
+    blogId,
+    { $inc: { viewCount: 1 } },
+    { new: true }
+  );
 };
 
 // Create the Blog model from the schema
