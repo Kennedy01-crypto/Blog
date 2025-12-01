@@ -26,9 +26,10 @@ export const createBlog = async (req, res, next) => {
  */
 export const getBlog = async (req, res, next) => {
   try {
-    let query = Blog.findById(req.params.id);
+    let query = Blog.incrementViewCount(req.params.id);
+
     if (req.query.fields) {
-      const fields = req.query.fields.split(',').join(' ');
+      const fields = req.query.fields.split(",").join(" ");
       query = query.select(fields);
     }
 
@@ -184,6 +185,142 @@ export const deleteBlog = async (req, res, next) => {
       status: true,
       data: null,
       message: "Blog Successfully Deleted",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * @description Search for blogs
+ * @route GET /api/blogs/search
+ * @access Public
+ */
+export const searchBlogs = async (req, res, next) => {
+  try {
+    const { q } = req.query;
+    let query;
+
+    if (q) {
+      const searchRegex = new RegExp(q, "i");
+      query = Blog.find({
+        $or: [
+          { title: searchRegex },
+          { content: searchRegex },
+          { tags: searchRegex },
+        ],
+      });
+    } else {
+      query = Blog.find();
+    }
+
+    // 2) Sorting
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(",").join(" ");
+      query = query.sort(sortBy);
+    } else {
+      query = query.sort("-createdAt");
+    }
+
+    // 3) Field limiting
+    if (req.query.fields) {
+      const fields = req.query.fields.split(",").join(" ");
+      query = query.select(fields);
+    } else {
+      query = query.select("-__v");
+    }
+
+    // 4) Pagination
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 100;
+    const skip = (page - 1) * limit;
+
+    query = query.skip(skip).limit(limit);
+
+    const numBlogs = await Blog.countDocuments(query.getFilter());
+    if (req.query.page) {
+      if (skip >= numBlogs) throw new Error("This page does not exist");
+    }
+    // EXECUTE QUERY
+    const blogs = await query;
+
+    // SEND RESPONSE
+    res.status(200).json({
+      status: true,
+      results: blogs.length,
+      total: numBlogs,
+      count: blogs.length,
+      pagination: {
+        TotalBlogs: numBlogs,
+        totalPages: Math.ceil(numBlogs / limit),
+        currentPage: page,
+        Limit: limit,
+      },
+      data: {
+        blogs,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * @description Get blogs by tag
+ * @route GET /api/blogs/tag/:tag
+ * @access Public
+ */
+export const getBlogsByTag = async (req, res, next) => {
+  try {
+    const { tag } = req.params;
+    let query = Blog.find({ tags: { $in: [tag] } });
+
+    // 2) Sorting
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(",").join(" ");
+      query = query.sort(sortBy);
+    } else {
+      query = query.sort("-createdAt");
+    }
+
+    // 3) Field limiting
+    if (req.query.fields) {
+      const fields = req.query.fields.split(",").join(" ");
+      query = query.select(fields);
+    } else {
+      query = query.select("-__v");
+    }
+
+    // 4) Pagination
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 100;
+    const skip = (page - 1) * limit;
+
+    query = query.skip(skip).limit(limit);
+
+    const numBlogs = await Blog.countDocuments({ tags: { $in: [tag] } });
+    if (req.query.page) {
+      if (skip >= numBlogs) throw new Error("This page does not exist");
+    }
+
+    // EXECUTE QUERY
+    const blogs = await query;
+
+    // SEND RESPONSE
+    res.status(200).json({
+      status: true,
+      results: blogs.length,
+      total: numBlogs,
+      count: blogs.length,
+      pagination: {
+        TotalBlogs: numBlogs,
+        totalPages: Math.ceil(numBlogs / limit),
+        currentPage: page,
+        Limit: limit,
+      },
+      data: {
+        blogs,
+      },
     });
   } catch (err) {
     next(err);
