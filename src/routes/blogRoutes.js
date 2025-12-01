@@ -105,6 +105,55 @@ router.get("/", blogsController.getBlogs);
 
 /**
  * @swagger
+ * /blogs/search:
+ *   get:
+ *     summary: Search for blog posts
+ *     tags: [Blogs]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: The search keyword
+ *     responses:
+ *       200:
+ *         description: A list of blog posts matching the search keyword
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Blog'
+ */
+router.get("/search", blogsController.searchBlogs);
+
+/**
+ * @swagger
+ * /blogs/tag/{tag}:
+ *   get:
+ *     summary: Get blog posts by tag
+ *     tags: [Blogs]
+ *     parameters:
+ *       - in: path
+ *         name: tag
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The tag to search for
+ *     responses:
+ *       200:
+ *         description: A list of blog posts with the specified tag
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Blog'
+ */
+router.get("/tag/:tag", blogsController.getBlogsByTag);
+
+/**
+ * @swagger
  * /blogs/{id}:
  *   get:
  *     summary: Get the blog post by id
