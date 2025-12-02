@@ -1,4 +1,5 @@
 import AppError from "../config/appError.js";
+import mongoose from "mongoose";
 
 /**
  * @description Handles database cast errors, which occur when a query expects a certain data type but receives another.
@@ -31,9 +32,18 @@ const handleValidationError = (err) => {
  * @model Unique: is set to true
  */
 const handleDuplicateFields = (err) => {
-  const value = err.keyValue[Object.keys(err.keyvalue)[0]];
-  const message = `Duplicate field value: "${value}". Please use another value!`;
-  return new AppError(message, 400);
+  let field = "field";
+  let value = "duplicate";
+
+  if (err.keyValue) {
+    field = Object.keys(err.keyValue)[0];
+    value = err.keyValue[field];
+    const message = `Duplicate field value: "${value}". Please use another ${field}!`;
+    return new AppError(message, 400);
+  } else {
+    const message = `There is a duplicate field in your entry. Please Review`;
+    return new AppError(message, 400);
+  }
 };
 
 /**
@@ -92,7 +102,7 @@ const globalErrorHandler = (err, req, res, next) => {
     };
     if (error.name === "ValidationError") error = handleValidationError(error);
     if (error.name === "CastError") error = handleCastErrorDB(error);
-    if (error.code === 11000) error = handleDuplicateFields(error);
+    if (error.name == "MongooseError" || error.code === 11000) error = handleDuplicateFields(error);
     sendErrorDev(error, res);
   } else if (process.env.NODE_ENV === "production") {
     let error = {
