@@ -4,6 +4,7 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import DBconnect from "./config/db.js";
 import blogsrouter from "./routes/blogRoutes.js";
+import userRouter from "./routes/userRoutes.js";
 import globalErrorHandler from "./controllers/errorController.js";
 import AppError from "./config/appError.js";
 import swaggerUi from "swagger-ui-express";
@@ -38,6 +39,9 @@ app.get("/", (req, res) => {
 
 // Mount the blogs router for all routes starting with /api
 app.use("/api/blogs", blogsrouter);
+
+// Mount the user router for all routes starting with /api
+app.use("/api/users", userRouter);
 
 // Middleware to handle requests for routes that have not been defined
 app.use("/*path", (req, res, next) => {
