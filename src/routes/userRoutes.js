@@ -1,7 +1,7 @@
 import express from "express";
-import * as userController from "../controllers/user.Controller.js";
+import * as userController from "../controllers/userController.js";
 
-const router = express.Router();
+const userRouter = express.Router();
 
 /**
  * @swagger
@@ -83,11 +83,12 @@ const router = express.Router();
  *       400:
  *         description: Bad request
  */
-router
+userRouter
   .route("/")
   .get(userController.getAllUsers)
   .post(userController.createUser);
 
+userRouter.post("/", userController.createUser)
 /**
  * @swagger
  * /api/users/{id}:
@@ -154,10 +155,10 @@ router
  *       404:
  *         description: The user was not found
  */
-router
+userRouter
   .route("/:id")
   .get(userController.getUser)
   .put(userController.updateUser)
   .delete(userController.deleteUser);
 
-export default router;
+export default userRouter;
