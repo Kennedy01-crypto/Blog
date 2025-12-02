@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema(
     username: {
       type: String,
       required: [true, "Username is required."],
-      unique: true,
+      unique: [true, "Username must be unique."],
       lowercase: true,
       trim: true,
       minlength: [8, "Username must be at least 8 characters long."],
@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: [true, "An email is required."],
-      unique: true,
+      unique: [true, "Email must be unique."],
       lowercase: true,
       trim: true,
       match: [/^\S+@\S+\.\S+$/, "Please use a valid email address."],
@@ -47,4 +47,4 @@ userSchema.virtual("fullName").get(function () {
 
 const User = mongoose.model("User", userSchema);
 
-module.exports = User;
+export default User;
