@@ -41,23 +41,7 @@ export const getUser = async (req, res, next) => {
   }
 };
 
-// @desc    Create a user
-// @route   POST /api/users
-// @access  Public
-export const createUser = async (req, res, next) => {
-  try {
-    const newUser = await User.create(req.body);
-    res.status(201).json({
-      status: true,
-      message: "User Created Successfully",
-      data: {
-        user: newUser,
-      },
-    });
-  } catch (err) {
-    next(err);
-  }
-};
+
 
 // @desc    Update a user
 // @route   PUT /api/users/:id
