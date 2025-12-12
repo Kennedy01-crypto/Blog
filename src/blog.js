@@ -4,6 +4,7 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import DBconnect from "./config/db.js";
 import blogsrouter from "./routes/blogRoutes.js";
+import authRouter from "./routes/authRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 import globalErrorHandler from "./controllers/errorController.js";
 import AppError from "./config/appError.js";
@@ -42,7 +43,7 @@ app.use("/api/blogs", blogsrouter);
 
 // Mount the user router for all routes starting with /api
 app.use("/api/users", userRouter);
-
+app.use("/api/auth", authRouter);
 // Middleware to handle requests for routes that have not been defined
 app.use("/*path", (req, res, next) => {
   // Pass a 404 error to the global error handler
